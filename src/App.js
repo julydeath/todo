@@ -18,11 +18,17 @@ import { useState, useEffect } from "react";
 function App() {
   const [task, setTask] = useState("");
   const [todos, setTodos] = useState([]);
+  const [deleting, setDeleting] = useState({
+    id: null,
+    status: false,
+  });
+  const [adding, setAdding] = useState(false);
 
   const toast = useToast();
 
   const addTodo = (e) => {
     e.preventDefault();
+    setAdding(true);
 
     const addTodos = async () => {
       try {
@@ -33,6 +39,7 @@ function App() {
           }
         );
         setTodos((prev) => [...prev, result.data.data]);
+        setAdding(false);
       } catch (error) {
         console.log(error.message);
         toast({
@@ -42,6 +49,7 @@ function App() {
           duration: 3000,
           isClosable: true,
         });
+        setAdding(false);
       }
     };
     addTodos();
@@ -50,6 +58,10 @@ function App() {
   };
 
   const handleDelete = (id) => {
+    setDeleting({
+      id: id,
+      status: true,
+    });
     const deleteTodo = async () => {
       try {
         await axios.delete(`https://d6t2vunx.directus.app/items/todos/${id}`);
@@ -105,10 +117,12 @@ function App() {
             onChange={(e) => setTask(e.target.value)}
             value={task}
           />
-          <Button type="submit">Add</Button>
+          <Button type="submit" isLoading={adding}>
+            Add
+          </Button>
         </HStack>
       </form>
-      <VStack width="20vw">
+      <VStack width="400px">
         {/* {todos.map(({ task, id }) => (
           <IndividualTodo task={task} key={id} />
         ))} */}
@@ -122,6 +136,7 @@ function App() {
                 isRound={true}
                 colorScheme="red"
                 onClick={() => handleDelete(todo.id)}
+                isLoading={todo.id === deleting.id ? true : false}
               />
             </HStack>
           </Card>
